@@ -43,6 +43,11 @@ dependencies {
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
     implementation 'org.thymeleaf:thymeleaf-spring6:3.1.2.RELEASE'
     implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.30.0'
+    implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.47'
+    implementation group: 'org.springframework.security.oauth', name: 'spring-security-oauth', version: '2.5.2.RELEASE'
+
+
+
 
     liquibaseRuntime 'org.liquibase:liquibase-core:4.30.0'
     liquibaseRuntime 'org.postgresql:postgresql:42.7.4'
