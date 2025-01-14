@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -31,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 @SpringBootTest
@@ -65,6 +67,7 @@ class OrderControllerIT extends DatabaseIntegrationTests {
         categoryRepository.deleteAll();
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testCreateOrder() throws Exception {
         OrderDTO orderDTO = OrderDTO.builder()
                 .customerName("Test Customer")
@@ -72,6 +75,7 @@ class OrderControllerIT extends DatabaseIntegrationTests {
                 .build();
 
         mockMvc.perform(post("/api/v1/orders")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(orderDTO)))
                 .andExpect(status().isCreated())
@@ -79,6 +83,7 @@ class OrderControllerIT extends DatabaseIntegrationTests {
                 .andExpect(jsonPath("$.email").value("testcustomer@mail.com"));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testGetOrderById() throws Exception {
         OrderEntity order = orderRepository.save(
                 OrderEntity.builder()
@@ -89,12 +94,14 @@ class OrderControllerIT extends DatabaseIntegrationTests {
         );
 
         mockMvc.perform(get("/api/v1/orders/{orderId}", order.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.customerName").value("Test Customer"))
                 .andExpect(jsonPath("$.email").value("testcustomer@mail.com"));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testDeleteOrderById() throws Exception {
         OrderEntity order = orderRepository.save(
                 OrderEntity.builder()
@@ -105,6 +112,7 @@ class OrderControllerIT extends DatabaseIntegrationTests {
         );
 
         mockMvc.perform(delete("/api/v1/orders/{orderId}", order.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 

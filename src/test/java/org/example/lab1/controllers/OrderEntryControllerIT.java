@@ -22,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -37,6 +38,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -72,6 +74,7 @@ class OrderEntryControllerIT extends DatabaseIntegrationTests {
         categoryRepository.deleteAll();
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testAddProductToOrder() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -102,6 +105,7 @@ class OrderEntryControllerIT extends DatabaseIntegrationTests {
                 .build();
 
         mockMvc.perform(post("/api/v1/order/entry/{orderId}/products", order.getId())
+                        .with(csrf())
                         .param("productId", product.getId().toString())
                         .param("amount", "3")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -111,6 +115,7 @@ class OrderEntryControllerIT extends DatabaseIntegrationTests {
                 .andExpect(jsonPath("$.amount").value(3));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testRemoveProductFromOrder() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -145,12 +150,14 @@ class OrderEntryControllerIT extends DatabaseIntegrationTests {
                 .build();
 
         mockMvc.perform(delete("/api/v1/order/entry/{orderId}/products/{productId}", order.getId(), product.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
         assertFalse(orderEntryRepository.existsById(orderEntry.getId()));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testGetOrderEntries() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -187,6 +194,7 @@ class OrderEntryControllerIT extends DatabaseIntegrationTests {
 
 
         mockMvc.perform(get("/api/v1/order/entry/{orderId}/products", order.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));

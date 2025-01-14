@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -30,6 +31,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.junit.jupiter.Container;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -57,6 +60,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
         categoryRepository.deleteAll();
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testCreateProduct() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -72,6 +76,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
                 .build();
 
         mockMvc.perform(post("/api/v1/products")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDTO)))
                 .andExpect(status().isCreated())
@@ -79,6 +84,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
                 .andExpect(jsonPath("$.price").value(100.0));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testGetAllProducts() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -102,11 +108,13 @@ class ProductControllerIT extends DatabaseIntegrationTests {
         ));
 
         mockMvc.perform(get("/api/v1/products")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testGetProductById() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -124,11 +132,13 @@ class ProductControllerIT extends DatabaseIntegrationTests {
         );
 
         mockMvc.perform(get("/api/v1/products/{id}", product.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Product"));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testUpdateProduct() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -153,6 +163,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
                 .build();
 
         mockMvc.perform(put("/api/v1/products/{id}", product.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedProductDTO)))
                 .andExpect(status().isOk())
@@ -160,6 +171,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
                 .andExpect(jsonPath("$.price").value(200.0));
     }
     @Test
+    @WithMockUser(username = "test_user", roles = {"USER"})
     void testDeleteProduct() throws Exception {
         CategoryEntity category = categoryRepository.save(
                 CategoryEntity.builder()
@@ -177,6 +189,7 @@ class ProductControllerIT extends DatabaseIntegrationTests {
         );
 
         mockMvc.perform(delete("/api/v1/products/{id}", product.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
